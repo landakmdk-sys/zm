@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIPAS Donggala — Sistem Informasi Pengelolaan Sampah</title>
+  <meta name="description" content="Sistem Informasi Pengelolaan Sampah Kabupaten Donggala, Dinas Lingkungan Hidup." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green-dark:  #1a4731;
+      --green:       #2d7a4f;
+      --green-light: #4caf7d;
+      --green-pale:  #e8f5ee;
+      --accent:      #f59e0b;
+      --text:        #1c2b20;
+      --text-muted:  #5a7564;
+      --white:       #ffffff;
+      --bg:          #f4faf6;
+      --border:      #d1e8da;
+      --card-shadow: 0 2px 12px rgba(45,122,79,.10);
+      --radius:      12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--green-dark);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.3);
+    }
+    .nav-inner {
+      max-width: 1100px; margin: auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: .75rem 1.5rem; gap: 1rem;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: .6rem;
+      color: var(--white); font-weight: 700; font-size: 1.1rem;
+      text-decoration: none;
+    }
+    .nav-brand span { font-size: 1.6rem; }
+    .nav-links { display: flex; gap: .25rem; flex-wrap: wrap; }
+    .nav-links a {
+      color: rgba(255,255,255,.85); text-decoration: none;
+      padding: .4rem .85rem; border-radius: 6px; font-size: .9rem;
+      transition: background .2s;
+    }
+    .nav-links a:hover { background: rgba(255,255,255,.15); color: var(--white); }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 100%);
+      color: var(--white); padding: 4rem 1.5rem 3rem;
+      text-align: center; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '♻️'; font-size: 18rem; position: absolute;
+      top: -4rem; right: -3rem; opacity: .05; pointer-events: none;
+    }
+    .hero h1 { font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; margin-bottom: .5rem; }
+    .hero p { font-size: 1.05rem; opacity: .85; max-width: 560px; margin: auto; }
+    .hero-stats {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 1.5rem; margin-top: 2.5rem;
+    }
+    .stat-card {
+      background: rgba(255,255,255,.12); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: var(--radius); padding: 1.25rem 2rem; min-width: 140px;
+      text-align: center;
+    }
+    .stat-icon { font-size: 1.8rem; margin-bottom: .25rem; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; line-height: 1; }
+    .stat-satuan { font-size: .75rem; opacity: .75; }
+    .stat-label { font-size: .85rem; opacity: .85; margin-top: .2rem; }
+
+    /* ── SECTIONS ── */
+    .section { padding: 3rem 1.5rem; max-width: 1100px; margin: auto; }
+    .section-title {
+      font-size: 1.5rem; font-weight: 700; color: var(--green-dark);
+      margin-bottom: 1.5rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .section-title::after {
+      content: ''; flex: 1; height: 2px; background: var(--border);
+    }
+
+    /* ── JADWAL ── */
+    .jadwal-filter {
+      display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.25rem;
+    }
+    .jadwal-filter input {
+      flex: 1; min-width: 220px;
+      padding: .6rem 1rem; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: .9rem; outline: none;
+    }
+    .jadwal-filter input:focus { border-color: var(--green-light); }
+    .jadwal-table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; background: var(--white); }
+    th { background: var(--green-dark); color: var(--white); padding: .75rem 1rem; text-align: left; font-size: .875rem; }
+    td { padding: .65rem 1rem; border-bottom: 1px solid var(--border); font-size: .9rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--green-pale); }
+    .badge {
+      display: inline-block; padding: .2rem .6rem; border-radius: 999px;
+      font-size: .75rem; font-weight: 600;
+    }
+    .badge-green { background: var(--green-pale); color: var(--green-dark); }
+
+    /* ── NERACA ── */
+    .neraca-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 1rem; }
+    .neraca-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+      box-shadow: var(--card-shadow);
+    }
+    .neraca-card h3 { font-size: .85rem; color: var(--text-muted); margin-bottom: .4rem; }
+    .neraca-card .nilai { font-size: 1.6rem; font-weight: 700; color: var(--green); }
+    .neraca-card .satuan { font-size: .8rem; color: var(--text-muted); }
+
+    /* ── ARMADA ── */
+    .armada-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 1rem; }
+    .armada-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem 1.25rem;
+      box-shadow: var(--card-shadow); display: flex; align-items: center; gap: 1rem;
+    }
+    .armada-icon { font-size: 2rem; }
+    .armada-info { flex: 1; }
+    .armada-info h3 { font-size: .9rem; font-weight: 600; }
+    .armada-info p { font-size: .8rem; color: var(--text-muted); }
+
+    /* ── TPA ── */
+    .tpa-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem 2rem;
+      box-shadow: var(--card-shadow);
+      display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 1rem;
+    }
+    .tpa-item h4 { font-size: .8rem; color: var(--text-muted); margin-bottom: .2rem; }
+    .tpa-item p { font-size: .95rem; font-weight: 600; }
+
+    /* ── ADUAN ── */
+    .aduan-grid { display: grid; gap: 1.5rem; grid-template-columns: 1fr 1fr; }
+    @media(max-width:700px){ .aduan-grid { grid-template-columns: 1fr; } }
+
+    .aduan-form-card, .aduan-cek-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.75rem;
+      box-shadow: var(--card-shadow);
+    }
+    .aduan-form-card h3, .aduan-cek-card h3 {
+      font-size: 1.05rem; font-weight: 700; color: var(--green-dark);
+      margin-bottom: 1.2rem;
+    }
+    .form-row { display: grid; gap: .75rem; margin-bottom: .75rem; }
+    .form-row.two { grid-template-columns: 1fr 1fr; }
+    @media(max-width:520px){ .form-row.two { grid-template-columns: 1fr; } }
+    label { font-size: .85rem; font-weight: 500; color: var(--text-muted); display: block; margin-bottom: .25rem; }
+    input, select, textarea {
+      width: 100%; padding: .6rem .9rem;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: .9rem; color: var(--text); font-family: inherit;
+      outline: none; transition: border-color .2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--green-light); }
+    textarea { resize: vertical; min-height: 90px; }
+    .btn {
+      padding: .65rem 1.5rem; border: none; border-radius: 8px;
+      font-size: .9rem; font-weight: 600; cursor: pointer;
+      transition: all .2s; width: 100%;
+    }
+    .btn-primary { background: var(--green); color: var(--white); }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-accent { background: var(--accent); color: var(--white); }
+    .btn-accent:hover { filter: brightness(1.1); }
+
+    .alert {
+      padding: .85rem 1rem; border-radius: 8px; margin-top: 1rem;
+      font-size: .875rem; display: none;
+    }
+    .alert.show { display: block; }
+    .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .alert-info { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+
+    .tiket-result {
+      background: var(--green-pale); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1rem; margin-top: 1rem; display: none;
+    }
+    .tiket-result.show { display: block; }
+    .tiket-result dt { font-size: .8rem; color: var(--text-muted); }
+    .tiket-result dd { font-weight: 600; margin-bottom: .5rem; }
+
+    /* ── EDUKASI ── */
+    .edukasi-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); gap: 1.25rem; }
+    .edukasi-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      box-shadow: var(--card-shadow); transition: transform .2s;
+    }
+    .edukasi-card:hover { transform: translateY(-2px); }
+    .edukasi-img {
+      height: 140px; background: var(--green-pale);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; overflow: hidden;
+    }
+    .edukasi-img img { width: 100%; height: 100%; object-fit: cover; }
+    .edukasi-body { padding: 1rem 1.25rem; }
+    .edukasi-badge { font-size: .75rem; color: var(--green); font-weight: 600; text-transform: uppercase; }
+    .edukasi-body h3 { font-size: .95rem; margin: .3rem 0 .5rem; font-weight: 700; }
+    .edukasi-body p { font-size: .85rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* ── KONTAK ── */
+    .kontak-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 1rem; }
+    .kontak-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+      box-shadow: var(--card-shadow); display: flex; gap: .85rem; align-items: flex-start;
+    }
+    .kontak-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .kontak-info h4 { font-size: .8rem; color: var(--text-muted); margin-bottom: .2rem; }
+    .kontak-info p { font-size: .9rem; font-weight: 500; }
+    .kontak-info a { color: var(--green); text-decoration: none; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--green-dark); color: rgba(255,255,255,.8);
+      text-align: center; padding: 1.5rem; font-size: .85rem; margin-top: 2rem;
+    }
+    footer strong { color: var(--white); }
+
+    /* ── LOADING ── */
+    .loading { text-align: center; padding: 2rem; color: var(--text-muted); }
+    .loading-spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border); border-top-color: var(--green);
+      border-radius: 50%; animation: spin .7s linear infinite;
+      margin: 0 auto .75rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media(max-width:768px){
+      .nav-links { display: none; }
+      .hero { padding: 2.5rem 1rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#">
+      <span>♻️</span> SIPAS Donggala
+    </a>
+    <div class="nav-links">
+      <a href="#jadwal">Jadwal</a>
+      <a href="#neraca">Neraca Sampah</a>
+      <a href="#armada">Armada</a>
+      <a href="#tpa">Info TPA</a>
+      <a href="#edukasi">Edukasi</a>
+      <a href="#aduan">Aduan</a>
+      <a href="#kontak">Kontak</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="beranda">
+  <h1>Sistem Informasi Pengelolaan Sampah</h1>
+  <p>Kabupaten Donggala — Dinas Lingkungan Hidup</p>
+  <div class="hero-stats" id="heroStats">
+    <div class="loading"><div class="loading-spinner"></div></div>
+  </div>
+</section>
+
+<!-- JADWAL PENGANGKUTAN -->
+<div class="section" id="jadwal">
+  <h2 class="section-title">🚛 Jadwal Pengangkutan Sampah</h2>
+  <div class="jadwal-filter">
+    <input type="text" id="jadwalSearch" placeholder="Cari kelurahan atau hari..." oninput="filterJadwal()" />
+  </div>
+  <div class="jadwal-table-wrap">
+    <table>
+      <thead>
+        <tr><th>Kelurahan</th><th>Hari</th><th>Waktu</th><th>Zona</th><th>Keterangan</th></tr>
+      </thead>
+      <tbody id="jadwalBody">
+        <tr><td colspan="5" class="loading"><div class="loading-spinner" style="width:24px;height:24px;margin:.5rem auto"></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- NERACA SAMPAH -->
+<div style="background:var(--green-pale); padding:1rem 0;">
+  <div class="section" id="neraca" style="padding-top:2rem; padding-bottom:2rem;">
+    <h2 class="section-title">⚖️ Neraca Sampah</h2>
+    <div class="neraca-grid" id="neracaGrid">
+      <div class="loading"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ARMADA -->
+<div class="section" id="armada">
+  <h2 class="section-title">🚚 Armada Pengangkutan</h2>
+  <div class="armada-grid" id="armadaGrid">
+    <div class="loading"><div class="loading-spinner"></div></div>
+  </div>
+</div>
+
+<!-- INFO TPA -->
+<div style="background:var(--green-pale); padding:1rem 0;">
+  <div class="section" id="tpa" style="padding-top:2rem;padding-bottom:2rem;">
+    <h2 class="section-title">🏭 Informasi TPA</h2>
+    <div class="tpa-card" id="tpaCard">
+      <div class="loading"><div class="loading-spinner"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDUKASI -->
+<div class="section" id="edukasi">
+  <h2 class="section-title">📚 Edukasi Persampahan</h2>
+  <div class="edukasi-grid" id="edukasiGrid">
+    <div class="loading"><div class="loading-spinner"></div></div>
+  </div>
+</div>
+
+<!-- ADUAN -->
+<div style="background:var(--green-pale); padding:1rem 0;">
+  <div class="section" id="aduan" style="padding-top:2rem;padding-bottom:2rem;">
+    <h2 class="section-title">📝 Layanan Aduan Masyarakat</h2>
+    <div class="aduan-grid">
+      <!-- Form Kirim -->
+      <div class="aduan-form-card">
+        <h3>📨 Kirim Aduan Baru</h3>
+        <div class="form-row two">
+          <div><label>Nama Lengkap *</label><input id="aduanNama" placeholder="Nama Anda" /></div>
+          <div><label>No. Telepon</label><input id="aduanTelepon" placeholder="08xxxxxxxxxx" /></div>
+        </div>
+        <div class="form-row">
+          <div><label>Kelurahan *</label>
+            <select id="aduanKelurahan"><option value="">-- Pilih Kelurahan --</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div><label>Kategori</label>
+            <select id="aduanKategori">
+              <option value="tumpukan_sampah">Tumpukan Sampah Liar</option>
+              <option value="jadwal_terlambat">Jadwal Pengangkutan Terlambat</option>
+              <option value="armada_rusak">Armada Rusak/Kotor</option>
+              <option value="pencemaran">Pencemaran Lingkungan</option>
+              <option value="umum">Lain-lain</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div><label>Deskripsi Masalah *</label>
+            <textarea id="aduanDeskripsi" placeholder="Ceritakan masalah yang Anda temukan..."></textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="kirimAduan()">📤 Kirim Aduan</button>
+        <div class="alert" id="aduanAlert"></div>
+      </div>
+
+      <!-- Cek Status -->
+      <div class="aduan-cek-card">
+        <h3>🔍 Cek Status Aduan</h3>
+        <label>Nomor Tiket</label>
+        <input id="tiketInput" placeholder="Contoh: ADU-XXXXX-YYY" />
+        <button class="btn btn-accent" style="margin-top:.75rem;" onclick="cekAduan()">Cek Status</button>
+        <div class="alert" id="cekAlert"></div>
+        <dl class="tiket-result" id="tiketResult">
+          <dt>Nomor Tiket</dt><dd id="trTiket"></dd>
+          <dt>Status</dt><dd id="trStatus"></dd>
+          <dt>Kelurahan</dt><dd id="trKelurahan"></dd>
+          <dt>Kategori</dt><dd id="trKategori"></dd>
+          <dt>Keterangan Admin</dt><dd id="trCatatan"></dd>
+          <dt>Tanggal</dt><dd id="trTanggal"></dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KONTAK -->
+<div class="section" id="kontak">
+  <h2 class="section-title">📞 Kontak Dinas</h2>
+  <div class="kontak-grid" id="kontakGrid">
+    <div class="loading"><div class="loading-spinner"></div></div>
+  </div>
+</div>
+
+<footer>
+  <strong>SIPAS Donggala</strong> — Sistem Informasi Pengelolaan Sampah<br />
+  Dinas Lingkungan Hidup Kabupaten Donggala &copy; 2025
+</footer>
+
+<script>
+  // ── Config ─────────────────────────────────────────────────────────────────
+  const BASE_URL = window.location.origin;
+  let ALL_JADWAL = [];
+  let ALL_KELURAHAN = [];
+
+  // ── Bootstrap ──────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    loadAll();
+  });
+
+  async function loadAll() {
+    try {
+      const res = await fetch(`${BASE_URL}/api/public/all`);
+      if (!res.ok) throw new Error('Server error');
+      const data = await res.json();
+
+      renderHeroStats(data.heroStats || []);
+      ALL_JADWAL = data.jadwal || [];
+      ALL_KELURAHAN = data.kelurahan || [];
+      renderJadwal(ALL_JADWAL);
+      renderNeraca(data.neraca || []);
+      renderArmada(data.armada || []);
+      renderTPA(data.tpa || {});
+      renderEdukasi(data.edukasi || []);
+      renderKontak(data.kontak || {});
+      populateKelurahanSelect(ALL_KELURAHAN);
+    } catch (e) {
+      console.warn('Gagal memuat data dari server:', e.message);
+      document.getElementById('heroStats').innerHTML = '<p style="color:rgba(255,255,255,.7)">Data tidak tersedia sementara ini.</p>';
+    }
+  }
+
+  // ── Render Functions ───────────────────────────────────────────────────────
+  function renderHeroStats(stats) {
+    const el = document.getElementById('heroStats');
+    if (!stats.length) { el.innerHTML = ''; return; }
+    el.innerHTML = stats.map(s => `
+      <div class="stat-card">
+        <div class="stat-icon">${s.icon || '📊'}</div>
+        <div class="stat-value">${s.value}</div>
+        <div class="stat-satuan">${s.satuan || ''}</div>
+        <div class="stat-label">${s.label}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderJadwal(jadwal) {
+    const tbody = document.getElementById('jadwalBody');
+    if (!jadwal.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1.5rem">Belum ada data jadwal.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = jadwal.map(j => `
+      <tr>
+        <td>${j.kelurahan}</td>
+        <td>${j.hari}</td>
+        <td>${j.waktu || '-'}</td>
+        <td>${j.zona ? `<span class="badge badge-green">${j.zona}</span>` : '-'}</td>
+        <td>${j.keterangan || '-'}</td>
+      </tr>
+    `).join('');
+  }
+
+  function filterJadwal() {
+    const q = document.getElementById('jadwalSearch').value.toLowerCase();
+    const filtered = ALL_JADWAL.filter(j =>
+      j.kelurahan.toLowerCase().includes(q) || j.hari.toLowerCase().includes(q)
+    );
+    renderJadwal(filtered);
+  }
+
+  function renderNeraca(neraca) {
+    const el = document.getElementById('neracaGrid');
+    if (!neraca.length) { el.innerHTML = '<p>Data neraca belum tersedia.</p>'; return; }
+    el.innerHTML = neraca.map(n => `
+      <div class="neraca-card">
+        <h3>${n.label}</h3>
+        <div class="nilai">${n.volume}</div>
+        <div class="satuan">${n.satuan || 'ton/hari'}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderArmada(armada) {
+    const el = document.getElementById('armadaGrid');
+    if (!armada.length) { el.innerHTML = '<p>Data armada belum tersedia.</p>'; return; }
+    const icons = { 'Truk': '🚛', 'Motor Roda Tiga': '🛺', 'Pick Up': '🚐', 'Kontainer': '📦' };
+    el.innerHTML = armada.map(a => {
+      const icon = Object.entries(icons).find(([k]) => a.jenis.includes(k))?.[1] || '🚚';
+      return `
+        <div class="armada-card">
+          <div class="armada-icon">${icon}</div>
+          <div class="armada-info">
+            <h3>${a.jenis}</h3>
+            <p>${a.nomor_polisi}</p>
+            <p>${a.kapasitas ? '🏋️ ' + a.kapasitas : ''}</p>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderTPA(tpa) {
+    const el = document.getElementById('tpaCard');
+    const entries = [
+      { label: 'Nama TPA', key: 'nama' },
+      { label: 'Alamat', key: 'alamat' },
+      { label: 'Luas Area', key: 'luas' },
+      { label: 'Kapasitas', key: 'kapasitas' },
+      { label: 'Metode', key: 'metode' },
+    ];
+    el.innerHTML = entries.map(e => `
+      <div class="tpa-item">
+        <h4>${e.label}</h4>
+        <p>${tpa[e.key] || '-'}</p>
+      </div>
+    `).join('');
+  }
+
+  function renderEdukasi(edukasi) {
+    const el = document.getElementById('edukasiGrid');
+    if (!edukasi.length) { el.innerHTML = '<p>Konten edukasi belum tersedia.</p>'; return; }
+    el.innerHTML = edukasi.map(e => `
+      <div class="edukasi-card">
+        <div class="edukasi-img">
+          ${e.gambar_url ? `<img src="${e.gambar_url}" alt="${e.judul}" loading="lazy" />` : '📖'}
+        </div>
+        <div class="edukasi-body">
+          <div class="edukasi-badge">${e.kategori}</div>
+          <h3>${e.judul}</h3>
+          <p>${e.konten.substring(0, 100)}${e.konten.length > 100 ? '…' : ''}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderKontak(kontak) {
+    const el = document.getElementById('kontakGrid');
+    const items = [
+      { icon: '🏢', label: 'Nama Dinas', key: 'nama_dinas' },
+      { icon: '📍', label: 'Alamat', key: 'alamat' },
+      { icon: '📞', label: 'Telepon', key: 'telepon' },
+      { icon: '✉️', label: 'Email', key: 'email' },
+      { icon: '💬', label: 'WhatsApp UPT', key: 'wa_upt', isLink: true },
+      { icon: '⏰', label: 'Jam Kerja', key: 'jam_kerja' },
+    ];
+    el.innerHTML = items.filter(i => kontak[i.key]).map(i => `
+      <div class="kontak-card">
+        <div class="kontak-icon">${i.icon}</div>
+        <div class="kontak-info">
+          <h4>${i.label}</h4>
+          <p>${i.isLink
+            ? `<a href="https://wa.me/${kontak[i.key]}" target="_blank" rel="noopener">Chat WhatsApp</a>`
+            : kontak[i.key]
+          }</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function populateKelurahanSelect(kelurahan) {
+    const sel = document.getElementById('aduanKelurahan');
+    if (!kelurahan.length) return;
+    sel.innerHTML = '<option value="">-- Pilih Kelurahan --</option>' +
+      kelurahan.map(k => `<option value="${k.nama}">${k.nama}</option>`).join('');
+  }
+
+  // ── Aduan ──────────────────────────────────────────────────────────────────
+  async function kirimAduan() {
+    const alertEl = document.getElementById('aduanAlert');
+    const nama = document.getElementById('aduanNama').value.trim();
+    const telepon = document.getElementById('aduanTelepon').value.trim();
+    const kelurahan = document.getElementById('aduanKelurahan').value;
+    const kategori = document.getElementById('aduanKategori').value;
+    const deskripsi = document.getElementById('aduanDeskripsi').value.trim();
+
+    if (!nama || !kelurahan || !deskripsi) {
+      showAlert(alertEl, 'error', 'Nama, kelurahan, dan deskripsi wajib diisi.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BASE_URL}/api/aduan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nama, telepon, kelurahan, kategori, deskripsi })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal mengirim aduan');
+      showAlert(alertEl, 'success', `✅ Aduan berhasil dikirim! Nomor tiket: <strong>${data.tiket}</strong>`);
+      // Clear form
+      ['aduanNama','aduanTelepon','aduanDeskripsi'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('aduanKelurahan').value = '';
+    } catch (e) {
+      showAlert(alertEl, 'error', e.message);
+    }
+  }
+
+  async function cekAduan() {
+    const tiket = document.getElementById('tiketInput').value.trim().toUpperCase();
+    const alertEl = document.getElementById('cekAlert');
+    const resultEl = document.getElementById('tiketResult');
+
+    if (!tiket) { showAlert(alertEl, 'error', 'Masukkan nomor tiket terlebih dahulu.'); return; }
+
+    try {
+      const res = await fetch(`${BASE_URL}/api/aduan/${encodeURIComponent(tiket)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Tiket tidak ditemukan');
+
+      document.getElementById('trTiket').textContent = data.tiket;
+      document.getElementById('trStatus').textContent = data.status.toUpperCase();
+      document.getElementById('trKelurahan').textContent = data.kelurahan;
+      document.getElementById('trKategori').textContent = data.kategori;
+      document.getElementById('trCatatan').textContent = data.catatan_admin || '(belum ada catatan)';
+      document.getElementById('trTanggal').textContent = data.created_at;
+
+      alertEl.className = 'alert';
+      resultEl.classList.add('show');
+    } catch (e) {
+      showAlert(alertEl, 'error', e.message);
+      resultEl.classList.remove('show');
+    }
+  }
+
+  function showAlert(el, type, msg) {
+    el.innerHTML = msg;
+    el.className = `alert alert-${type} show`;
+    setTimeout(() => el.className = 'alert', 6000);
+  }
+</script>
+</body>
+</html>
