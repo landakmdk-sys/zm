@@ -222,6 +222,10 @@
     <input type="password" id="tokenInput" placeholder="Masukkan Password admin" onkeydown="if(event.key==='Enter')doLogin()" />
     <button onclick="doLogin()">Masuk →</button>
     <div id="loginError">❌ Password tidak valid. Coba lagi.</div>
+    <label>Token Admin</label>
+    <input type="password" id="tokenInput" placeholder="Masukkan token admin" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button onclick="doLogin()">Masuk →</button>
+    <div id="loginError">❌ Token tidak valid. Coba lagi.</div>
   </div>
 </div>
 
@@ -387,6 +391,7 @@
       <div class="panel" id="panel-hero-stats">
         <div class="card">
           <div class="card-header"><h3>📈 Statistik (Halaman Publik)</h3></div>
+          <div class="card-header"><h3>📈 Statistik Hero (Halaman Publik)</h3></div>
           <div class="card-body" id="heroStatsForm">Memuat...</div>
         </div>
       </div>
@@ -445,6 +450,7 @@
     <div class="form-grid two">
       <div class="form-group"><label>Kelurahan *</label><input id="jadwalKelurahan" placeholder="Nama kelurahan" /></div>
       <div class="form-group"><label>Hari *</label>
+<HEAD
         <div id="jadwalHari">
   <label><input type="checkbox" value="Senin"> Senin</label>
   <label><input type="checkbox" value="Selasa"> Selasa</label>
@@ -453,6 +459,10 @@
   <label><input type="checkbox" value="Jumat"> Jumat</label>
   <label><input type="checkbox" value="Sabtu"> Sabtu</label>
 </div>
+        <select id="jadwalHari">
+          <option>Senin</option><option>Selasa</option><option>Rabu</option>
+          <option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Minggu</option>
+        </select>
       </div>
       <div class="form-group"><label>Waktu</label><input id="jadwalWaktu" placeholder="07:00 - 10:00" /></div>
       <div class="form-group"><label>Zona</label><input id="jadwalZona" placeholder="A / B / C..." /></div>
