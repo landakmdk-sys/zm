@@ -209,6 +209,9 @@
     .empty-state { text-align: center; padding: 2.5rem; color: var(--text-muted); }
     .empty-state .icon { font-size: 2.5rem; margin-bottom: .5rem; }
     input[type="password"] { letter-spacing: .1em; }
+    #jadwalHari {
+  height: 140px;
+}
   </style>
 </head>
 <body>
@@ -447,18 +450,15 @@
       <div class="form-group"><label>Kelurahan *</label><input id="jadwalKelurahan" placeholder="Nama kelurahan" /></div>
       <div class="form-group"><label>Hari *</label>
 <HEAD
-        <div id="jadwalHari">
-  <label><input type="checkbox" value="Senin"> Senin</label>
-  <label><input type="checkbox" value="Selasa"> Selasa</label>
-  <label><input type="checkbox" value="Rabu"> Rabu</label>
-  <label><input type="checkbox" value="Kamis"> Kamis</label>
-  <label><input type="checkbox" value="Jumat"> Jumat</label>
-  <label><input type="checkbox" value="Sabtu"> Sabtu</label>
-</div>
-        <select id="jadwalHari">
-          <option>Senin</option><option>Selasa</option><option>Rabu</option>
-          <option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Minggu</option>
-        </select>
+        <select id="jadwalHari" multiple>
+  <option value="Senin">Senin</option>
+  <option value="Selasa">Selasa</option>
+  <option value="Rabu">Rabu</option>
+  <option value="Kamis">Kamis</option>
+  <option value="Jumat">Jumat</option>
+  <option value="Sabtu">Sabtu</option>
+  <option value="Minggu">Minggu</option>
+</select>
       </div>
       <div class="form-group"><label>Waktu</label><input id="jadwalWaktu" placeholder="07:00 - 10:00" /></div>
       <div class="form-group"><label>Zona</label><input id="jadwalZona" placeholder="A / B / C..." /></div>
