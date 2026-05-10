@@ -26,6 +26,16 @@ db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
 // Create all tables if they don't exist
+db.prepare(`
+CREATE TABLE IF NOT EXISTS neraca_bulanan (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  bulan TEXT NOT NULL,
+  tahun INTEGER NOT NULL,
+  masuk REAL DEFAULT 0,
+  terangkut REAL DEFAULT 0,
+  UNIQUE(bulan, tahun)
+)
+`).run();
 db.exec(`
   CREATE TABLE IF NOT EXISTS hero_stats (
     id TEXT PRIMARY KEY,
@@ -208,8 +218,14 @@ app.get('/api/public/neraca-bulanan', (req, res) => {
     const data = db.prepare('SELECT * FROM neraca_bulanan ORDER BY tahun ASC, CASE bulan WHEN "Jan" THEN 1 WHEN "Feb" THEN 2 WHEN "Mar" THEN 3 WHEN "Apr" THEN 4 WHEN "Mei" THEN 5 WHEN "Jun" THEN 6 WHEN "Jul" THEN 7 WHEN "Agu" THEN 8 WHEN "Sep" THEN 9 WHEN "Okt" THEN 10 WHEN "Nov" THEN 11 WHEN "Des" THEN 12 ELSE 99 END ASC').all();
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (err.message.includes('UNIQUE')) {
+    return res.status(400).json({
+      error: 'Data bulan dan tahun sudah ada'
+    });
   }
+
+  res.status(500).json({ error: err.message });
+}
 });
 
 // NEW FEATURE: GET /api/public/bank-sampah — daftar bank sampah untuk publik
@@ -699,49 +715,84 @@ app.delete('/api/admin/bank-sampah/:id', requireAdmin, (req, res) => {
   res.json({ success: true });
 });
 
-// ── NEW FEATURE: Neraca Bulanan ─────────────────────────────────────────────────
+// ──// ═══════════════════════════════════════════════
+// NEW FEATURE: Neraca Bulanan
+// ═══════════════════════════════════════════════
+
+// GET ALL
 app.get('/api/admin/neraca-bulanan', requireAdmin, (req, res) => {
   try {
-    const data = db.prepare('SELECT * FROM neraca_bulanan ORDER BY tahun ASC, CASE bulan WHEN "Jan" THEN 1 WHEN "Feb" THEN 2 WHEN "Mar" THEN 3 WHEN "Apr" THEN 4 WHEN "Mei" THEN 5 WHEN "Jun" THEN 6 WHEN "Jul" THEN 7 WHEN "Agu" THEN 8 WHEN "Sep" THEN 9 WHEN "Okt" THEN 10 WHEN "Nov" THEN 11 WHEN "Des" THEN 12 ELSE 99 END ASC').all();
+    const data = db.prepare(`
+      SELECT * FROM neraca_bulanan
+      ORDER BY tahun ASC,
+      CASE bulan
+        WHEN "Jan" THEN 1 WHEN "Feb" THEN 2 WHEN "Mar" THEN 3
+        WHEN "Apr" THEN 4 WHEN "Mei" THEN 5 WHEN "Jun" THEN 6
+        WHEN "Jul" THEN 7 WHEN "Agu" THEN 8 WHEN "Sep" THEN 9
+        WHEN "Okt" THEN 10 WHEN "Nov" THEN 11 WHEN "Des" THEN 12
+        ELSE 99
+      END ASC
+    `).all();
+
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// CREATE
 app.post('/api/admin/neraca-bulanan', requireAdmin, (req, res) => {
   try {
     const { bulan, tahun, masuk, terangkut } = req.body;
-    if (!bulan || !tahun) return res.status(400).json({ error: 'Bulan dan tahun wajib diisi' });
+
+    if (!bulan || !tahun)
+      return res.status(400).json({ error: 'Bulan dan tahun wajib diisi' });
+
     const info = db.prepare(`
-      INSERT INTO neraca_bulanan (bulan, tahun, masuk, terangkut) VALUES (?, ?, ?, ?)
+      INSERT INTO neraca_bulanan (bulan, tahun, masuk, terangkut)
+      VALUES (?, ?, ?, ?)
     `).run(bulan, tahun, masuk || 0, terangkut || 0);
+
     res.status(201).json({ success: true, id: info.lastInsertRowid });
   } catch (err) {
-    if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'Data bulan dan tahun tersebut sudah ada' });
+    if (err.message.includes('UNIQUE')) {
+      return res.status(400).json({ error: 'Data bulan dan tahun tersebut sudah ada' });
+    }
     res.status(500).json({ error: err.message });
   }
 });
 
+// UPDATE
 app.put('/api/admin/neraca-bulanan/:id', requireAdmin, (req, res) => {
   try {
     const { bulan, tahun, masuk, terangkut } = req.body;
+
     const info = db.prepare(`
-      UPDATE neraca_bulanan SET bulan=?, tahun=?, masuk=?, terangkut=? WHERE id=?
+      UPDATE neraca_bulanan
+      SET bulan=?, tahun=?, masuk=?, terangkut=?
+      WHERE id=?
     `).run(bulan, tahun, masuk || 0, terangkut || 0, req.params.id);
-    if (info.changes === 0) return res.status(404).json({ error: 'Data tidak ditemukan' });
+
+    if (info.changes === 0)
+      return res.status(404).json({ error: 'Data tidak ditemukan' });
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// DELETE
 app.delete('/api/admin/neraca-bulanan/:id', requireAdmin, (req, res) => {
-  const info = db.prepare('DELETE FROM neraca_bulanan WHERE id = ?').run(req.params.id);
-  if (info.changes === 0) return res.status(404).json({ error: 'Data tidak ditemukan' });
+  const info = db.prepare(`
+    DELETE FROM neraca_bulanan WHERE id = ?
+  `).run(req.params.id);
+
+  if (info.changes === 0)
+    return res.status(404).json({ error: 'Data tidak ditemukan' });
+
   res.json({ success: true });
 });
-
 // ─── 404 Fallback ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
   if (req.path.startsWith('/api/')) {

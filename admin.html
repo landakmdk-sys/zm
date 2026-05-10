@@ -1207,7 +1207,7 @@
   // ══════════════════════════════════════════════════════════
   async function loadNeracaBulanan() {
     try {
-      const res = await apiFetch('/api/admin/neraca-bulanan');
+      const res = await apiFetch('/api/admin/neraca');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const tbody = document.getElementById('neracaBulananTable');
@@ -1255,7 +1255,9 @@
     };
     if (!body.bulan || !body.tahun) { showToast('Bulan dan tahun wajib diisi', 'error'); return; }
     const method = id ? 'PUT' : 'POST';
-    const url = id ? `/api/admin/neraca-bulanan/${id}` : '/api/admin/neraca-bulanan';
+    const url = id 
+  ? `/api/admin/neraca-bulanan/${id}` 
+  : '/api/admin/neraca-bulanan';
     try {
       const res = await apiFetch(url, { method, body: JSON.stringify(body) });
       if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
