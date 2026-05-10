@@ -213,19 +213,35 @@ app.get('/admin', (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // NEW FEATURE: GET /api/public/neraca-bulanan — data neraca bulanan untuk publik
+
+    
 app.get('/api/public/neraca-bulanan', (req, res) => {
   try {
-    const data = db.prepare('SELECT * FROM neraca_bulanan ORDER BY tahun ASC, CASE bulan WHEN "Jan" THEN 1 WHEN "Feb" THEN 2 WHEN "Mar" THEN 3 WHEN "Apr" THEN 4 WHEN "Mei" THEN 5 WHEN "Jun" THEN 6 WHEN "Jul" THEN 7 WHEN "Agu" THEN 8 WHEN "Sep" THEN 9 WHEN "Okt" THEN 10 WHEN "Nov" THEN 11 WHEN "Des" THEN 12 ELSE 99 END ASC').all();
-    res.json(data);
-  } catch (err) {
-  if (err.message.includes('UNIQUE')) {
-    return res.status(400).json({
-      error: 'Data bulan dan tahun sudah ada'
-    });
-  }
+    const data = db.prepare(`
+      SELECT * FROM neraca_bulanan
+      ORDER BY tahun ASC,
+      CASE bulan
+        WHEN 'Jan' THEN 1
+        WHEN 'Feb' THEN 2
+        WHEN 'Mar' THEN 3
+        WHEN 'Apr' THEN 4
+        WHEN 'Mei' THEN 5
+        WHEN 'Jun' THEN 6
+        WHEN 'Jul' THEN 7
+        WHEN 'Agu' THEN 8
+        WHEN 'Sep' THEN 9
+        WHEN 'Okt' THEN 10
+        WHEN 'Nov' THEN 11
+        WHEN 'Des' THEN 12
+        ELSE 99
+      END ASC
+    `).all();
 
-  res.status(500).json({ error: err.message });
-}
+    res.json(data);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // NEW FEATURE: GET /api/public/bank-sampah — daftar bank sampah untuk publik
