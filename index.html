@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SIPAS Donggala — Sistem Informasi Pengelolaan Sampah</title>
   <meta name="description" content="Sistem Informasi Pengelolaan Sampah Kabupaten Donggala, Dinas Lingkungan Hidup." />
+  <!-- NEW FEATURE: Chart.js for neraca bulanan chart -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -251,6 +253,63 @@
       .nav-links { display: none; }
       .hero { padding: 2.5rem 1rem 2rem; }
     }
+
+    /* NEW FEATURE: Neraca Bulanan Chart & Insights */
+    .neraca-chart-wrap {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      box-shadow: var(--card-shadow); margin-top: 1.25rem;
+    }
+    .neraca-insight-row {
+      display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem;
+    }
+    .insight-box {
+      flex: 1; min-width: 200px;
+      padding: .85rem 1.1rem; border-radius: 10px;
+      font-size: .9rem; font-weight: 600;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .insight-warn  { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .insight-danger{ background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .insight-ok    { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .insight-pred  {
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: var(--white); border-radius: 10px;
+      padding: 1rem 1.5rem; margin-top: .75rem;
+      font-size: 1rem; font-weight: 700;
+      display: flex; align-items: center; gap: .6rem;
+    }
+
+    /* NEW FEATURE: Jadwal Pintar */
+    .jadwal-pintar-box {
+      background: linear-gradient(135deg, #1a4731, #2d7a4f);
+      color: var(--white); border-radius: var(--radius);
+      padding: 1rem 1.5rem; margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: .85rem;
+      font-size: .95rem;
+    }
+    .jadwal-pintar-box .jp-icon { font-size: 1.8rem; flex-shrink: 0; }
+    .jadwal-pintar-box .jp-label { font-size: .75rem; opacity: .8; }
+    .jadwal-pintar-box .jp-text { font-weight: 700; font-size: 1rem; }
+
+    /* NEW FEATURE: Bank Sampah */
+    .bank-sampah-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.1rem;
+    }
+    .bank-sampah-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem;
+      box-shadow: var(--card-shadow);
+      display: flex; flex-direction: column; gap: .35rem;
+    }
+    .bank-sampah-card h3 { font-size: 1rem; font-weight: 700; color: var(--green-dark); }
+    .bank-sampah-card .bs-row {
+      display: flex; align-items: center; gap: .4rem;
+      font-size: .85rem; color: var(--text-muted);
+    }
+    .bank-sampah-card .bs-row strong { color: var(--text); }
   </style>
 </head>
 <body>
@@ -264,6 +323,7 @@
     <div class="nav-links">
       <a href="#jadwal">Jadwal</a>
       <a href="#neraca">Neraca Sampah</a>
+      <a href="#bank-sampah">Bank Sampah</a>
       <a href="#armada">Armada</a>
       <a href="#tpa">Info TPA</a>
       <a href="#edukasi">Edukasi</a>
@@ -285,6 +345,14 @@
 <!-- JADWAL PENGANGKUTAN -->
 <div class="section" id="jadwal">
   <h2 class="section-title">🚛 Jadwal Pengangkutan Sampah</h2>
+  <!-- NEW FEATURE: Jadwal Pintar -->
+  <div class="jadwal-pintar-box" id="jadwalPintar" style="display:none">
+    <div class="jp-icon">📅</div>
+    <div>
+      <div class="jp-label">Jadwal Hari Ini</div>
+      <div class="jp-text" id="jadwalPintarText">Memuat...</div>
+    </div>
+  </div>
   <div class="jadwal-filter">
     <input type="text" id="jadwalSearch" placeholder="Cari kelurahan atau hari..." oninput="filterJadwal()" />
   </div>
@@ -303,10 +371,22 @@
 <!-- NERACA SAMPAH -->
 <div style="background:var(--green-pale); padding:1rem 0;">
   <div class="section" id="neraca" style="padding-top:2rem; padding-bottom:2rem;">
-    <h2 class="section-title">⚖️ Neraca Sampah</h2>
-    <div class="neraca-grid" id="neracaGrid">
-      <div class="loading"><div class="loading-spinner"></div></div>
+    <h2 class="section-title">⚖️ Neraca Sampah Bulanan</h2>
+    <!-- NEW FEATURE: Insight & Prediction boxes -->
+    <div class="neraca-insight-row" id="neracaInsights"></div>
+    <div id="neracaPrediksi"></div>
+    <!-- NEW FEATURE: Line chart neraca bulanan -->
+    <div class="neraca-chart-wrap">
+      <canvas id="neracaChart" height="120"></canvas>
     </div>
+  </div>
+</div>
+
+<!-- NEW FEATURE: BANK SAMPAH -->
+<div class="section" id="bank-sampah">
+  <h2 class="section-title">🏦 Bank Sampah Terdekat</h2>
+  <div class="bank-sampah-grid" id="bankSampahGrid">
+    <div class="loading"><div class="loading-spinner"></div></div>
   </div>
 </div>
 
@@ -412,10 +492,13 @@
   const BASE_URL = window.location.origin;
   let ALL_JADWAL = [];
   let ALL_KELURAHAN = [];
+  let neracaChartInstance = null; // NEW FEATURE
 
   // ── Bootstrap ──────────────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     loadAll();
+    loadNeracaBulanan();   // NEW FEATURE
+    loadBankSampah();      // NEW FEATURE
   });
 
   async function loadAll() {
@@ -428,7 +511,7 @@
       ALL_JADWAL = data.jadwal || [];
       ALL_KELURAHAN = data.kelurahan || [];
       renderJadwal(ALL_JADWAL);
-      renderNeraca(data.neraca || []);
+      renderJadwalPintar(ALL_JADWAL); // NEW FEATURE
       renderArmada(data.armada || []);
       renderTPA(data.tpa || {});
       renderEdukasi(data.edukasi || []);
@@ -480,15 +563,7 @@
   }
 
   function renderNeraca(neraca) {
-    const el = document.getElementById('neracaGrid');
-    if (!neraca.length) { el.innerHTML = '<p>Data neraca belum tersedia.</p>'; return; }
-    el.innerHTML = neraca.map(n => `
-      <div class="neraca-card">
-        <h3>${n.label}</h3>
-        <div class="nilai">${n.volume}</div>
-        <div class="satuan">${n.satuan || 'ton/hari'}</div>
-      </div>
-    `).join('');
+    // kept for API compatibility but neraca section now uses neraca bulanan chart
   }
 
   function renderArmada(armada) {
@@ -654,6 +729,192 @@ window.open(
     el.innerHTML = msg;
     el.className = `alert alert-${type} show`;
     setTimeout(() => el.className = 'alert', 6000);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // NEW FEATURE: Neraca Bulanan Chart + Insights + Prediksi
+  // ═══════════════════════════════════════════════════════════
+  async function loadNeracaBulanan() {
+    try {
+      const res = await fetch(`${BASE_URL}/api/public/neraca-bulanan`);
+      if (!res.ok) throw new Error('Server error');
+      const data = await res.json();
+      renderNeracaBulananChart(data);
+      renderNeracaInsights(data);
+    } catch (e) {
+      document.getElementById('neracaInsights').innerHTML =
+        '<p style="color:var(--text-muted);font-size:.85rem">Data neraca bulanan belum tersedia.</p>';
+    }
+  }
+
+  function renderNeracaBulananChart(data) {
+    const ctx = document.getElementById('neracaChart').getContext('2d');
+    const labels = data.map(d => `${d.bulan} ${d.tahun}`);
+    const masuk = data.map(d => d.masuk);
+    const terangkut = data.map(d => d.terangkut);
+
+    if (neracaChartInstance) neracaChartInstance.destroy();
+
+    if (!data.length) {
+      document.getElementById('neracaChart').parentElement.innerHTML =
+        '<p style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada data neraca bulanan.</p>';
+      return;
+    }
+
+    neracaChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Sampah Masuk (ton)',
+            data: masuk,
+            borderColor: '#dc2626',
+            backgroundColor: 'rgba(220,38,38,.12)',
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#dc2626',
+            pointRadius: 5,
+          },
+          {
+            label: 'Sampah Terangkut (ton)',
+            data: terangkut,
+            borderColor: '#2d7a4f',
+            backgroundColor: 'rgba(45,122,79,.12)',
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#2d7a4f',
+            pointRadius: 5,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: true, text: 'Tren Neraca Sampah Bulanan (ton)', font: { size: 14 } }
+        },
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Ton' } },
+          x: { title: { display: true, text: 'Bulan' } }
+        }
+      }
+    });
+  }
+
+  function renderNeracaInsights(data) {
+    const insightEl = document.getElementById('neracaInsights');
+    const predEl = document.getElementById('neracaPrediksi');
+    if (!data || data.length < 2) {
+      insightEl.innerHTML = '';
+      predEl.innerHTML = '';
+      return;
+    }
+
+    const last = data[data.length - 1];
+    const prev = data[data.length - 2];
+    const insights = [];
+
+    // Insight 1: trend masuk
+    if (last.masuk > prev.masuk) {
+      insights.push({ cls: 'insight-warn', text: `⚠️ Sampah masuk meningkat bulan ini (${last.masuk} vs ${prev.masuk} ton)` });
+    } else if (last.masuk < prev.masuk) {
+      insights.push({ cls: 'insight-ok', text: `✅ Sampah masuk menurun dibanding bulan lalu` });
+    } else {
+      insights.push({ cls: 'insight-ok', text: `✅ Volume sampah masuk stabil` });
+    }
+
+    // Insight 2: pengangkutan
+    if (last.terangkut < last.masuk) {
+      const sisa = (last.masuk - last.terangkut).toFixed(1);
+      insights.push({ cls: 'insight-danger', text: `🚨 Pengangkutan belum optimal — ${sisa} ton belum terangkut bulan ini` });
+    } else {
+      insights.push({ cls: 'insight-ok', text: `✅ Kondisi terkendali — seluruh sampah sudah terangkut` });
+    }
+
+    insightEl.innerHTML = insights.map(i =>
+      `<div class="insight-box ${i.cls}">${i.text}</div>`
+    ).join('');
+
+    // Prediksi bulan depan
+    let prediksi;
+    if (data.length >= 3) {
+      const a = data[data.length - 3].masuk;
+      const b = data[data.length - 2].masuk;
+      const c = data[data.length - 1].masuk;
+      const trend = c - b;
+      prediksi = Math.round(c + trend);
+      if (prediksi < 0) prediksi = Math.round((a + b + c) / 3); // fallback ke rata-rata
+    } else {
+      prediksi = Math.round((last.masuk + prev.masuk) / 2);
+    }
+
+    predEl.innerHTML = `<div class="insight-pred">🔮 Prediksi sampah masuk bulan depan: <span style="font-size:1.2rem;margin-left:.4rem">${prediksi.toLocaleString()} ton</span></div>`;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // NEW FEATURE: Jadwal Pintar
+  // ═══════════════════════════════════════════════════════════
+  function renderJadwalPintar(jadwal) {
+    const hariMap = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+    const today = hariMap[new Date().getDay()];
+    const box = document.getElementById('jadwalPintar');
+    const txt = document.getElementById('jadwalPintarText');
+
+    const savedKel = localStorage.getItem('sipas_kelurahan') || '';
+    const matches = jadwal.filter(j => {
+      const hariList = j.hari.split(/[,\/]+/).map(h => h.trim());
+      return hariList.some(h => h === today);
+    });
+
+    box.style.display = 'flex';
+
+    if (!matches.length) {
+      txt.textContent = `Tidak ada jadwal pengangkutan hari ${today}. Pastikan sampah sudah disiapkan.`;
+      return;
+    }
+
+    const area = savedKel
+      ? matches.filter(j => j.kelurahan.toLowerCase().includes(savedKel.toLowerCase()))
+      : [];
+
+    if (area.length) {
+      txt.textContent = `👉 Hari ini (${today}) ada pengangkutan di ${area.map(j=>j.kelurahan).join(', ')} — Pukul ${area[0].waktu || '07:00 - 10:00'}`;
+    } else {
+      txt.textContent = `👉 Hari ${today} ada pengangkutan di: ${matches.map(j=>j.kelurahan).slice(0,4).join(', ')}${matches.length > 4 ? ` & ${matches.length - 4} lainnya` : ''}`;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // NEW FEATURE: Bank Sampah
+  // ═══════════════════════════════════════════════════════════
+  async function loadBankSampah() {
+    try {
+      const res = await fetch(`${BASE_URL}/api/public/bank-sampah`);
+      if (!res.ok) throw new Error('Server error');
+      const data = await res.json();
+      renderBankSampah(data);
+    } catch (e) {
+      document.getElementById('bankSampahGrid').innerHTML =
+        '<p style="color:var(--text-muted)">Data bank sampah belum tersedia.</p>';
+    }
+  }
+
+  function renderBankSampah(data) {
+    const el = document.getElementById('bankSampahGrid');
+    if (!data.length) {
+      el.innerHTML = '<p style="color:var(--text-muted)">Belum ada data bank sampah.</p>';
+      return;
+    }
+    el.innerHTML = data.map(b => `
+      <div class="bank-sampah-card">
+        <h3>🏦 ${b.nama}</h3>
+        ${b.alamat ? `<div class="bs-row">📍 <strong>${b.alamat}</strong></div>` : ''}
+        ${b.kelurahan ? `<div class="bs-row">🏘️ <span>${b.kelurahan}</span></div>` : ''}
+        ${b.kontak ? `<div class="bs-row">📞 <strong>${b.kontak}</strong></div>` : ''}
+        ${b.jadwal ? `<div class="bs-row">🗓️ <span>${b.jadwal}</span></div>` : ''}
+      </div>
+    `).join('');
   }
 </script>
 </body>

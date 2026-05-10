@@ -1,5 +1,0 @@
-node_modules/
-sipas.db-shm
-sipas.db-wal
-.env
-npm-debug.log*
