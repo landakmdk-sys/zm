@@ -262,14 +262,6 @@
       <div class="sidebar-item" data-panel="edukasi" onclick="switchPanel('edukasi', this)">
         <span class="icon">📚</span> Edukasi
       </div>
-      <!-- NEW FEATURE: Bank Sampah -->
-      <div class="sidebar-item" data-panel="bank-sampah" onclick="switchPanel('bank-sampah', this)">
-        <span class="icon">🏦</span> Bank Sampah
-      </div>
-      <!-- NEW FEATURE: Neraca Bulanan -->
-      <div class="sidebar-item" data-panel="neraca-bulanan" onclick="switchPanel('neraca-bulanan', this)">
-        <span class="icon">⚖️</span> Neraca Bulanan
-      </div>
       <div class="sidebar-section">Konfigurasi</div>
       <div class="sidebar-item" data-panel="hero-stats" onclick="switchPanel('hero-stats', this)">
         <span class="icon">📈</span> Statistik Hero
@@ -426,38 +418,6 @@
         </div>
       </div>
 
-      <!-- NEW FEATURE: PANEL: BANK SAMPAH ── -->
-      <div class="panel" id="panel-bank-sampah">
-        <div class="card">
-          <div class="card-header">
-            <h3>🏦 Data Bank Sampah</h3>
-            <button class="btn btn-primary btn-sm" onclick="openBankSampahModal()">+ Tambah Bank Sampah</button>
-          </div>
-          <div class="card-body" style="overflow-x:auto">
-            <table>
-              <thead><tr><th>Nama</th><th>Alamat</th><th>Kelurahan</th><th>Kontak</th><th>Jadwal Operasional</th><th>Aksi</th></tr></thead>
-              <tbody id="bankSampahTable"><tr class="loading-row"><td colspan="6">Memuat data...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- NEW FEATURE: PANEL: NERACA BULANAN ── -->
-      <div class="panel" id="panel-neraca-bulanan">
-        <div class="card">
-          <div class="card-header">
-            <h3>⚖️ Neraca Sampah Bulanan</h3>
-            <button class="btn btn-primary btn-sm" onclick="openNeracaBulananModal()">+ Tambah Data</button>
-          </div>
-          <div class="card-body" style="overflow-x:auto">
-            <table>
-              <thead><tr><th>Bulan</th><th>Tahun</th><th>Masuk (ton)</th><th>Terangkut (ton)</th><th>Selisih</th><th>Aksi</th></tr></thead>
-              <tbody id="neracaBulananTable"><tr class="loading-row"><td colspan="6">Memuat data...</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
     </div><!-- /content -->
   </div><!-- /main -->
 </div><!-- /shell -->
@@ -586,52 +546,6 @@
   </div>
 </div>
 
-<!-- NEW FEATURE: Bank Sampah Modal -->
-<div class="modal-backdrop" id="modalBankSampah">
-  <div class="modal">
-    <h3 id="bankSampahModalTitle">Tambah Bank Sampah</h3>
-    <input type="hidden" id="bankSampahId" />
-    <div class="form-grid two">
-      <div class="form-group"><label>Nama Bank Sampah *</label><input id="bsNama" placeholder="Nama bank sampah" /></div>
-      <div class="form-group"><label>Kelurahan</label><input id="bsKelurahan" placeholder="Nama kelurahan" /></div>
-      <div class="form-group"><label>Alamat</label><input id="bsAlamat" placeholder="Alamat lengkap" /></div>
-      <div class="form-group"><label>Kontak</label><input id="bsKontak" placeholder="Nomor HP / WA" /></div>
-    </div>
-    <div class="form-group" style="margin-top:.75rem"><label>Jadwal Operasional</label><input id="bsJadwal" placeholder="Contoh: Senin & Kamis, 08:00 - 12:00" /></div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modalBankSampah')">Batal</button>
-      <button class="btn btn-primary" onclick="saveBankSampah()">💾 Simpan</button>
-    </div>
-  </div>
-</div>
-
-<!-- NEW FEATURE: Neraca Bulanan Modal -->
-<div class="modal-backdrop" id="modalNeracaBulanan">
-  <div class="modal">
-    <h3 id="neracaBulananModalTitle">Tambah Data Neraca Bulanan</h3>
-    <input type="hidden" id="neracaBulananId" />
-    <div class="form-grid two">
-      <div class="form-group"><label>Bulan *</label>
-        <select id="nbBulan">
-          <option value="Jan">Januari</option><option value="Feb">Februari</option>
-          <option value="Mar">Maret</option><option value="Apr">April</option>
-          <option value="Mei">Mei</option><option value="Jun">Juni</option>
-          <option value="Jul">Juli</option><option value="Agu">Agustus</option>
-          <option value="Sep">September</option><option value="Okt">Oktober</option>
-          <option value="Nov">November</option><option value="Des">Desember</option>
-        </select>
-      </div>
-      <div class="form-group"><label>Tahun *</label><input id="nbTahun" type="number" min="2020" max="2099" placeholder="2025" /></div>
-      <div class="form-group"><label>Volume Masuk (ton)</label><input id="nbMasuk" type="number" min="0" step="0.01" placeholder="0" /></div>
-      <div class="form-group"><label>Volume Terangkut (ton)</label><input id="nbTerangkut" type="number" min="0" step="0.01" placeholder="0" /></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('modalNeracaBulanan')">Batal</button>
-      <button class="btn btn-primary" onclick="saveNeracaBulanan()">💾 Simpan</button>
-    </div>
-  </div>
-</div>
-
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -686,17 +600,13 @@
     'dashboard': 'Dashboard', 'aduan': 'Aduan Masyarakat',
     'jadwal': 'Jadwal Pengangkutan', 'armada': 'Data Armada',
     'kelurahan': 'Data Kelurahan', 'edukasi': 'Konten Edukasi',
-    'hero-stats': 'Statistik Hero', 'tpa': 'Informasi TPA', 'kontak': 'Kontak Dinas',
-    'bank-sampah': 'Bank Sampah',       // NEW FEATURE
-    'neraca-bulanan': 'Neraca Bulanan'  // NEW FEATURE
+    'hero-stats': 'Statistik Hero', 'tpa': 'Informasi TPA', 'kontak': 'Kontak Dinas'
   };
 
   const panelLoaders = {
     'dashboard': loadDashboard, 'aduan': loadAduan, 'jadwal': loadJadwal,
     'armada': loadArmada, 'kelurahan': loadKelurahan, 'edukasi': loadEdukasi,
-    'hero-stats': loadHeroStats, 'tpa': loadTPA, 'kontak': loadKontak,
-    'bank-sampah': loadBankSampah,       // NEW FEATURE
-    'neraca-bulanan': loadNeracaBulanan  // NEW FEATURE
+    'hero-stats': loadHeroStats, 'tpa': loadTPA, 'kontak': loadKontak
   };
 
   function switchPanel(name, el) {
@@ -1132,142 +1042,6 @@
       }
       showToast('✅ Kontak diperbarui');
     } catch { showToast('Gagal menyimpan', 'error'); }
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // NEW FEATURE: Bank Sampah CRUD
-  // ══════════════════════════════════════════════════════════
-  async function loadBankSampah() {
-    try {
-      const res = await apiFetch('/api/admin/bank-sampah');
-      const data = await res.json();
-      const tbody = document.getElementById('bankSampahTable');
-      if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1.5rem">Belum ada data bank sampah.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = data.map(b => `
-        <tr>
-          <td><strong>${b.nama}</strong></td>
-          <td>${b.alamat || '-'}</td>
-          <td>${b.kelurahan || '-'}</td>
-          <td>${b.kontak || '-'}</td>
-          <td>${b.jadwal || '-'}</td>
-          <td style="white-space:nowrap">
-            <button class="btn btn-sm btn-secondary" onclick="editBankSampah(${JSON.stringify(b).replace(/"/g,'&quot;')})">✏️</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteBankSampah(${b.id})">🗑️</button>
-          </td>
-        </tr>`).join('');
-    } catch { showToast('Gagal memuat bank sampah', 'error'); }
-  }
-
-  function openBankSampahModal(b = null) {
-    document.getElementById('bankSampahModalTitle').textContent = b ? 'Edit Bank Sampah' : 'Tambah Bank Sampah';
-    document.getElementById('bankSampahId').value = b?.id || '';
-    document.getElementById('bsNama').value = b?.nama || '';
-    document.getElementById('bsAlamat').value = b?.alamat || '';
-    document.getElementById('bsKelurahan').value = b?.kelurahan || '';
-    document.getElementById('bsKontak').value = b?.kontak || '';
-    document.getElementById('bsJadwal').value = b?.jadwal || '';
-    openModal('modalBankSampah');
-  }
-  function editBankSampah(b) { openBankSampahModal(b); }
-
-  async function saveBankSampah() {
-    const id = document.getElementById('bankSampahId').value;
-    const body = {
-      nama: document.getElementById('bsNama').value.trim(),
-      alamat: document.getElementById('bsAlamat').value,
-      kelurahan: document.getElementById('bsKelurahan').value,
-      kontak: document.getElementById('bsKontak').value,
-      jadwal: document.getElementById('bsJadwal').value
-    };
-    if (!body.nama) { showToast('Nama bank sampah wajib diisi', 'error'); return; }
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `/api/admin/bank-sampah/${id}` : '/api/admin/bank-sampah';
-    try {
-      const res = await apiFetch(url, { method, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error();
-      showToast('✅ Bank sampah disimpan');
-      closeModal('modalBankSampah'); loadBankSampah();
-    } catch { showToast('Gagal menyimpan', 'error'); }
-  }
-
-  async function deleteBankSampah(id) {
-    if (!confirm('Hapus bank sampah ini?')) return;
-    try {
-      await apiFetch(`/api/admin/bank-sampah/${id}`, { method: 'DELETE' });
-      showToast('🗑️ Bank sampah dihapus'); loadBankSampah();
-    } catch { showToast('Gagal menghapus', 'error'); }
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // NEW FEATURE: Neraca Bulanan CRUD
-  // ══════════════════════════════════════════════════════════
-  async function loadNeracaBulanan() {
-    try {
-      const res = await apiFetch('/api/admin/neraca-bulanan');
-      const data = await res.json();
-      const tbody = document.getElementById('neracaBulananTable');
-      if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:1.5rem">Belum ada data neraca bulanan.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = data.map(n => {
-        const selisih = (n.masuk - n.terangkut).toFixed(1);
-        const selisihColor = selisih > 0 ? 'color:#dc2626' : 'color:#2d7a4f';
-        return `
-        <tr>
-          <td>${n.bulan}</td>
-          <td>${n.tahun}</td>
-          <td>${n.masuk.toLocaleString()}</td>
-          <td>${n.terangkut.toLocaleString()}</td>
-          <td style="${selisihColor};font-weight:600">${selisih > 0 ? '+' : ''}${selisih}</td>
-          <td style="white-space:nowrap">
-            <button class="btn btn-sm btn-secondary" onclick="editNeracaBulanan(${JSON.stringify(n).replace(/"/g,'&quot;')})">✏️</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteNeracaBulanan(${n.id})">🗑️</button>
-          </td>
-        </tr>`;
-      }).join('');
-    } catch { showToast('Gagal memuat neraca bulanan', 'error'); }
-  }
-
-  function openNeracaBulananModal(n = null) {
-    document.getElementById('neracaBulananModalTitle').textContent = n ? 'Edit Neraca Bulanan' : 'Tambah Data Neraca Bulanan';
-    document.getElementById('neracaBulananId').value = n?.id || '';
-    document.getElementById('nbBulan').value = n?.bulan || 'Jan';
-    document.getElementById('nbTahun').value = n?.tahun || new Date().getFullYear();
-    document.getElementById('nbMasuk').value = n?.masuk || '';
-    document.getElementById('nbTerangkut').value = n?.terangkut || '';
-    openModal('modalNeracaBulanan');
-  }
-  function editNeracaBulanan(n) { openNeracaBulananModal(n); }
-
-  async function saveNeracaBulanan() {
-    const id = document.getElementById('neracaBulananId').value;
-    const body = {
-      bulan: document.getElementById('nbBulan').value,
-      tahun: parseInt(document.getElementById('nbTahun').value),
-      masuk: parseFloat(document.getElementById('nbMasuk').value) || 0,
-      terangkut: parseFloat(document.getElementById('nbTerangkut').value) || 0
-    };
-    if (!body.bulan || !body.tahun) { showToast('Bulan dan tahun wajib diisi', 'error'); return; }
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `/api/admin/neraca-bulanan/${id}` : '/api/admin/neraca-bulanan';
-    try {
-      const res = await apiFetch(url, { method, body: JSON.stringify(body) });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.error); }
-      showToast('✅ Data neraca disimpan');
-      closeModal('modalNeracaBulanan'); loadNeracaBulanan();
-    } catch (e) { showToast(e.message || 'Gagal menyimpan', 'error'); }
-  }
-
-  async function deleteNeracaBulanan(id) {
-    if (!confirm('Hapus data neraca ini?')) return;
-    try {
-      await apiFetch(`/api/admin/neraca-bulanan/${id}`, { method: 'DELETE' });
-      showToast('🗑️ Data neraca dihapus'); loadNeracaBulanan();
-    } catch { showToast('Gagal menghapus', 'error'); }
   }
 </script>
 </body>

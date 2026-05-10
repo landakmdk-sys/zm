@@ -110,26 +110,6 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now', 'localtime')),
     updated_at TEXT DEFAULT (datetime('now', 'localtime'))
   );
-
-  /* NEW FEATURE: Bank Sampah */
-  CREATE TABLE IF NOT EXISTS bank_sampah (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nama TEXT NOT NULL,
-    alamat TEXT DEFAULT '',
-    kelurahan TEXT DEFAULT '',
-    kontak TEXT DEFAULT '',
-    jadwal TEXT DEFAULT ''
-  );
-
-  /* NEW FEATURE: Neraca Bulanan */
-  CREATE TABLE IF NOT EXISTS neraca_bulanan (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bulan TEXT NOT NULL,
-    tahun INTEGER NOT NULL,
-    masuk REAL DEFAULT 0,
-    terangkut REAL DEFAULT 0,
-    UNIQUE(bulan, tahun)
-  );
 `);
 
 // Seed default data if tables are empty
@@ -201,26 +181,6 @@ app.get('/admin', (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PUBLIC ENDPOINTS
 // ═══════════════════════════════════════════════════════════════════════════════
-
-// NEW FEATURE: GET /api/public/neraca-bulanan — data neraca bulanan untuk publik
-app.get('/api/public/neraca-bulanan', (req, res) => {
-  try {
-    const data = db.prepare('SELECT * FROM neraca_bulanan ORDER BY tahun ASC, CASE bulan WHEN "Jan" THEN 1 WHEN "Feb" THEN 2 WHEN "Mar" THEN 3 WHEN "Apr" THEN 4 WHEN "Mei" THEN 5 WHEN "Jun" THEN 6 WHEN "Jul" THEN 7 WHEN "Agu" THEN 8 WHEN "Sep" THEN 9 WHEN "Okt" THEN 10 WHEN "Nov" THEN 11 WHEN "Des" THEN 12 ELSE 99 END ASC').all();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// NEW FEATURE: GET /api/public/bank-sampah — daftar bank sampah untuk publik
-app.get('/api/public/bank-sampah', (req, res) => {
-  try {
-    const data = db.prepare('SELECT * FROM bank_sampah ORDER BY nama').all();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // GET /api/public/all — semua data untuk frontend publik
 app.get('/api/public/all', (req, res) => {
@@ -658,86 +618,6 @@ app.put('/api/admin/aduan/:id', requireAdmin, (req, res) => {
 
 app.delete('/api/admin/aduan/:id', requireAdmin, (req, res) => {
   const info = db.prepare('DELETE FROM aduan WHERE id = ?').run(req.params.id);
-  if (info.changes === 0) return res.status(404).json({ error: 'Data tidak ditemukan' });
-  res.json({ success: true });
-});
-
-// ── NEW FEATURE: Bank Sampah ────────────────────────────────────────────────────
-app.get('/api/admin/bank-sampah', requireAdmin, (req, res) => {
-  res.json(db.prepare('SELECT * FROM bank_sampah ORDER BY nama').all());
-});
-
-app.post('/api/admin/bank-sampah', requireAdmin, (req, res) => {
-  try {
-    const { nama, alamat, kelurahan, kontak, jadwal } = req.body;
-    if (!nama) return res.status(400).json({ error: 'Nama bank sampah wajib diisi' });
-    const info = db.prepare(`
-      INSERT INTO bank_sampah (nama, alamat, kelurahan, kontak, jadwal) VALUES (?, ?, ?, ?, ?)
-    `).run(nama, alamat || '', kelurahan || '', kontak || '', jadwal || '');
-    res.status(201).json({ success: true, id: info.lastInsertRowid });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.put('/api/admin/bank-sampah/:id', requireAdmin, (req, res) => {
-  try {
-    const { nama, alamat, kelurahan, kontak, jadwal } = req.body;
-    const info = db.prepare(`
-      UPDATE bank_sampah SET nama=?, alamat=?, kelurahan=?, kontak=?, jadwal=? WHERE id=?
-    `).run(nama, alamat || '', kelurahan || '', kontak || '', jadwal || '', req.params.id);
-    if (info.changes === 0) return res.status(404).json({ error: 'Data tidak ditemukan' });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.delete('/api/admin/bank-sampah/:id', requireAdmin, (req, res) => {
-  const info = db.prepare('DELETE FROM bank_sampah WHERE id = ?').run(req.params.id);
-  if (info.changes === 0) return res.status(404).json({ error: 'Data tidak ditemukan' });
-  res.json({ success: true });
-});
-
-// ── NEW FEATURE: Neraca Bulanan ─────────────────────────────────────────────────
-app.get('/api/admin/neraca-bulanan', requireAdmin, (req, res) => {
-  try {
-    const data = db.prepare('SELECT * FROM neraca_bulanan ORDER BY tahun ASC, CASE bulan WHEN "Jan" THEN 1 WHEN "Feb" THEN 2 WHEN "Mar" THEN 3 WHEN "Apr" THEN 4 WHEN "Mei" THEN 5 WHEN "Jun" THEN 6 WHEN "Jul" THEN 7 WHEN "Agu" THEN 8 WHEN "Sep" THEN 9 WHEN "Okt" THEN 10 WHEN "Nov" THEN 11 WHEN "Des" THEN 12 ELSE 99 END ASC').all();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/admin/neraca-bulanan', requireAdmin, (req, res) => {
-  try {
-    const { bulan, tahun, masuk, terangkut } = req.body;
-    if (!bulan || !tahun) return res.status(400).json({ error: 'Bulan dan tahun wajib diisi' });
-    const info = db.prepare(`
-      INSERT INTO neraca_bulanan (bulan, tahun, masuk, terangkut) VALUES (?, ?, ?, ?)
-    `).run(bulan, tahun, masuk || 0, terangkut || 0);
-    res.status(201).json({ success: true, id: info.lastInsertRowid });
-  } catch (err) {
-    if (err.message.includes('UNIQUE')) return res.status(400).json({ error: 'Data bulan dan tahun tersebut sudah ada' });
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.put('/api/admin/neraca-bulanan/:id', requireAdmin, (req, res) => {
-  try {
-    const { bulan, tahun, masuk, terangkut } = req.body;
-    const info = db.prepare(`
-      UPDATE neraca_bulanan SET bulan=?, tahun=?, masuk=?, terangkut=? WHERE id=?
-    `).run(bulan, tahun, masuk || 0, terangkut || 0, req.params.id);
-    if (info.changes === 0) return res.status(404).json({ error: 'Data tidak ditemukan' });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.delete('/api/admin/neraca-bulanan/:id', requireAdmin, (req, res) => {
-  const info = db.prepare('DELETE FROM neraca_bulanan WHERE id = ?').run(req.params.id);
   if (info.changes === 0) return res.status(404).json({ error: 'Data tidak ditemukan' });
   res.json({ success: true });
 });
