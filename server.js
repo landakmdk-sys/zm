@@ -364,11 +364,11 @@ app.put('/api/admin/hero-stats/:id', requireAdmin, (req, res) => {
 });
 
 // ── Neraca ─────────────────────────────────────────────────────────────────────
-app.get('/api/admin/neraca', requireAdmin, (req, res) => {
-  res.json(db.prepare('SELECT * FROM neraca').all());
+app.get('/api/admin/neraca-bulanan', requireAdmin, (req, res) => {
+  res.json(db.prepare('SELECT * FROM neraca_bulanan').all());
 });
 
-app.put('/api/admin/neraca/:id', requireAdmin, (req, res) => {
+app.put('/api/admin/neraca-bulanan/:id', requireAdmin, (req, res) => {
   try {
     const { label, volume, satuan } = req.body;
     const info = db.prepare('UPDATE neraca SET label=?, volume=?, satuan=? WHERE id=?')

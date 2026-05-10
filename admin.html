@@ -1207,7 +1207,7 @@
   // ══════════════════════════════════════════════════════════
   async function loadNeracaBulanan() {
     try {
-      const res = await apiFetch('/api/admin/neraca');
+      const res = await apiFetch('/api/admin/neraca-bulanan');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const tbody = document.getElementById('neracaBulananTable');
