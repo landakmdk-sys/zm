@@ -748,18 +748,17 @@ window.open(
   }
 
   function renderNeracaBulananChart(data) {
+    if (!data.length) {
+      document.getElementById('neracaChart').parentElement.innerHTML =
+        '<p style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada data neraca bulanan. Tambahkan melalui menu Admin → Neraca Bulanan.</p>';
+      return;
+    }
+
+    if (neracaChartInstance) neracaChartInstance.destroy();
     const ctx = document.getElementById('neracaChart').getContext('2d');
     const labels = data.map(d => `${d.bulan} ${d.tahun}`);
     const masuk = data.map(d => d.masuk);
     const terangkut = data.map(d => d.terangkut);
-
-    if (neracaChartInstance) neracaChartInstance.destroy();
-
-    if (!data.length) {
-      document.getElementById('neracaChart').parentElement.innerHTML =
-        '<p style="text-align:center;color:var(--text-muted);padding:2rem">Belum ada data neraca bulanan.</p>';
-      return;
-    }
 
     neracaChartInstance = new Chart(ctx, {
       type: 'line',
@@ -806,7 +805,9 @@ window.open(
     const insightEl = document.getElementById('neracaInsights');
     const predEl = document.getElementById('neracaPrediksi');
     if (!data || data.length < 2) {
-      insightEl.innerHTML = '';
+      insightEl.innerHTML = (data && data.length === 1)
+        ? '<div class="insight-box insight-ok">📊 Baru ada 1 bulan data — butuh minimal 2 bulan untuk insight otomatis.</div>'
+        : '';
       predEl.innerHTML = '';
       return;
     }
